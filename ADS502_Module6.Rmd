@@ -1,0 +1,94 @@
+---
+title: "Module 6 | R" 
+author: "Ryan S Dunn"
+date: "11/30/2021"
+output: pdf_document
+---
+## Data Science Using Python and R: Chapter 10 - Page 149: Questions #11, 12, 13, & 14
+
+### 11. Input and standardize both the training and test data sets.
+
+```{r}
+#import the data into R
+wine_train <- read.csv("/Users/ryan_s_dunn/Documents/USD MS-ADS/Applied Data Mining 502/Module 6/datasets/white_wine_training")
+wine_test <- read.csv("/Users/ryan_s_dunn/Documents/USD MS-ADS/Applied Data Mining 502/Module 6/datasets/white_wine_test")
+```
+
+```{r}
+#subset and standardize the training and test data sets
+train_subset <- subset(wine_train, select = c("alcohol","sugar"))
+test_subset <- subset(wine_test, select = c("alcohol","sugar"))
+
+#standardize training 
+train_z <- as.data.frame(scale(train_subset))
+colnames(train_z) <- c("alcohol_z","sugar_z")
+
+#standardize test
+test_z <- as.data.frame(scale(test_subset))
+colnames(test_z) <- c("alcohol_z", "sugar_z")
+
+```
+
+### 12. Run k‐means clustering on the training data set, using two clusters.
+
+```{r}
+#run the k-means clustering algorithm on training data 
+kmeans01 <- kmeans(train_z, centers = 2)
+```
+
+```{r}
+#save the cluster memebership of each records as its own variable
+cluster <- as.factor(kmeans01$cluster)
+```
+
+```{r}
+#seperate records into two groups for membership
+cluster1 <- train_z[ which(cluster == 1), ]
+cluster2 <- train_z[ which(cluster == 2), ]
+```
+### 13. Give the mean of each variable within each cluster and use the means to identify a “Dry wines” and a “Sweet wines” cluster.
+
+#### Summary statistics for Cluster 1 (training)
+```{r}
+summary(cluster1)
+```
+
+#### Summary statistics for Cluster 2 (training)
+```{r}
+summary(cluster2)
+```
+### 14. Validate the clustering results by running k‐means clustering on the test data set, using two clusters, and identifying a “Dry wines” and a “Sweet wines” cluster.
+
+```{r}
+#run the k-means clustering algorithm on test data 
+kmeans01_test <- kmeans(train_z, centers =2)
+```
+
+```{r}
+#save the cluster memebership of each records as its own variable
+cluster_test <- as.factor(kmeans01_test$cluster)
+```
+
+```{r}
+#seperate records into two groups for membership
+cluster1_test <- test_z[ which(cluster == 1), ]
+cluster2_test <- test_z[ which(cluster == 2), ]
+```
+
+#### Summary statistics for Cluster 1 (test)
+
+```{r}
+summary(cluster1_test)
+```
+
+#### Summary statistics for Cluster 2 (test)
+
+```{r}
+summary(cluster2_test)
+```
+
+
+
+
+
+

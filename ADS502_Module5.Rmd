@@ -1,0 +1,117 @@
+---
+title: "Module 5" 
+author: "Ryan S Dunn"
+date: "11/25/2021"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+## Data Science Using Python and R: Chapter 14 - Page 211: Questions #11, 12, 13, 14, & 15
+
+### 11. “Subset the variables VMail Plan, Int'l Plan, CustServ Calls, and Churn into their own data frame. Change CustServ Calls into an ordered factor.”
+
+```{r}
+#import the entire data frame
+churn_train <- read.csv("~/Documents/USD MS-ADS/Applied Data Mining 502/Module 5/Datasets/Churn_Training_File")
+#head(churn_train) 
+```
+
+```{r}
+#subset variables into their own data frame
+churn_subset <- subset(x=churn_train, select = c("VMail.Plan", "Intl.Plan", "CustServ.Calls", "Churn"))
+#head(churn_subset)
+
+#change CustServ.Calls to an ordered factor
+churn_subset$CustServ.Calls <- ordered(as.factor(churn_subset$CustServ.Calls))
+```
+
+### 12. “Create tables for each of the four variables. Include both counts and proportions in each table. Use the tables to discuss the “baseline” distribution of each variable.”
+
+```{r}
+#put each variable into its own table
+t1 <- table(churn_subset$VMail.Plan)
+t2 <- table(churn_subset$Intl.Plan)
+t3 <- table(churn_subset$CustServ.Calls)
+t4 <- table(churn_subset$Churn)
+
+#create the count/proportion table to each variable
+t11  <- rbind(t1, round(prop.table(t1), 4))
+colnames(t11) <- c("VMail.Plan = no", "VMail.Plan = yes")
+rownames(t11) <- c("Count","Proportion")
+
+t22 <- rbind(t2, round(prop.table(t2), 4))
+colnames(t22) <- c("Intl.Plan = no", "Intl.Plan = yes")
+rownames(t22) <- c("Count","Proportion")
+
+t33 <- rbind(t3, round(prop.table(t3),4))
+rownames(t33) <- c("Count","Proportion")
+
+t44 <- rbind(t4, round(prop.table(t4), 4))
+colnames(t44) <- rbind("Churn = False", "Churn = True")
+rownames(t44) <- c("Count","Proportion")
+```
+
+```{r}
+#view the proportion tables 
+t11
+```
+
+```{r}
+t22
+```
+
+```{r}
+t33
+```
+
+```{r}
+t44
+```
+### 13. “Obtain the association rules using the settings outlined in Section 14.4.”
+```{r}
+#install.packages("arules")
+library(arules)
+```
+
+```{r}
+#develop all association rules with min support as 0.01 with antecedents with exactly one item, and support to 0.40
+all.rules <- apriori(data = churn_subset, parameter = list(supp = 0.01, target = "rules", conf = 0.4, minlen = 2, maxlen = 2))
+```
+
+```{r}
+#view the top 10 rules sorted by lift
+inspect(head(all.rules, by = 'lift', n = 10))
+```
+### 14. “Subset the rules from the previous exercise so none of the antecedents contain the Churn variable. Display the rules, sorted by descending lift value.”
+```{r}
+#identify which rules have Churn in the antecedent, lhs
+all.rules.ant.df <- as(as(attr(all.rules, "lhs"), "transactions"), "data.frame")
+
+#return true and false vectors
+t_true <- all.rules.ant.df$items == "{Churn=True}"
+t_false <- all.rules.ant.df$items == "{Churn=False}"
+
+#single vector of zeros and ones, where the ones indicate antecedents that do not contain Churn
+non.churn.ant <- abs(t_true + t_false -1)
+
+#subset all rulls to good rules, with only the roles that have a non.churn.ant = 1
+good.rules <- all.rules[non.churn.ant == 1]
+```
+
+```{r}
+#view the top 10 good rules by lift
+inspect(head(good.rules, by = "lift", n = 10))
+```
+
+### 15. “Obtain association rules using the confidence difference criterion outlined in Section 14.6.”
+
+```{r}
+#include confidence different criterion in association rule setting
+rules.condiff <- apriori(data = churn_subset, parameter = list(arem = "diff", aval = TRUE,
+                         minval = 0.4, supp = 0.01, target = "rules", conf = 0.05, minlen = 2, maxlen = 2))
+```
+
+```{r}
+inspect(head(rules.condiff, by = "lift", n = 10))
+```
